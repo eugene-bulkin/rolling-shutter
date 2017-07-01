@@ -86,7 +86,7 @@ fn run() -> Result<()> {
 
     let output = matches.value_of("output").unwrap();
 
-    let paths = file_processing::get_paths(path_mode).chain_err(|| ErrorKind::CouldNotGetPaths)?;
+    let paths = file_processing::get_paths(&path_mode).chain_err(|| ErrorKind::CouldNotGetPaths)?;
 
     image_processing::process_images(paths, &output, direction)?;
 

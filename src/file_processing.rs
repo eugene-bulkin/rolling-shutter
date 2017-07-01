@@ -45,8 +45,8 @@ pub(crate) fn parse_filemask<S: Into<String>>(s: S) -> Result<(String, FileMask,
     }
 }
 
-pub fn get_paths(path_mode: PathMode) -> Result<Vec<PathBuf>> {
-    match path_mode {
+pub fn get_paths(path_mode: &PathMode) -> Result<Vec<PathBuf>> {
+    match *path_mode {
         PathMode::Filemask(filemask) => {
             let (left, mask, right) = parse_filemask(filemask)
                 .chain_err(|| ErrorKind::CouldNotParseFilemask(filemask.into()))?;

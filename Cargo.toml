@@ -1,6 +1,6 @@
 [package]
 name = "rolling-shutter"
-version = "0.1.0"
+version = "0.1.1"
 authors = ["Eugene Bulkin <eugene.bulkin2@gmail.com>"]
 
 [dependencies]
