@@ -75,7 +75,7 @@ pub fn get_paths(path_mode: PathMode) -> Result<Vec<PathBuf>> {
 
             Ok(paths)
         }
-        PathMode::Folder(folder) => {
+        PathMode::Folder(_folder) => {
             // TODO
             bail!(ErrorKind::Unimplemented)
         },
