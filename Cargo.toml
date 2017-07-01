@@ -1,0 +1,10 @@
+[package]
+name = "rolling-shutter"
+version = "0.1.0"
+authors = ["Eugene Bulkin <eugene.bulkin2@gmail.com>"]
+
+[dependencies]
+clap = "2.25.0"
+error-chain = "0.10.0"
+image = "0.14.0"
+regex = "0.2"
