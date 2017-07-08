@@ -61,6 +61,16 @@ fn process_image<I, J>(current_buffer: &mut I,
     }
 }
 
+/// Given a set of image paths, an output path, and a shutter direction, generate an output image.
+///
+/// # Arguments
+/// * `paths` - An iterator of `PathBuf`s that describe the input images, in the correct order.
+/// * `output` - The output image path.
+/// * `direction` - The direction from which the shutter *starts* moving.
+///
+/// # Errors
+/// This may fail if an individual image cannot be opened or processed, or if the output cannot be
+/// properly saved.
 pub(crate) fn process_images<I, P>(paths: I, output: P, direction: Direction) -> Result<()>
     where I: IntoIterator<Item = PathBuf>,
           P: AsRef<Path>
@@ -82,6 +92,8 @@ pub(crate) fn process_images<I, P>(paths: I, output: P, direction: Direction) ->
         let process_result = process_image(&mut buf, &mut cur_img, i, direction)
             .chain_err(|| ErrorKind::CouldNotProcessImage(path.clone()))?;
         if process_result {
+            // This is sort of an arbitrary number at which to show progress. Could probably turn
+            // this into a progress bar sort of thing.
             if (i + 1) % 40 == 0 && i > 0 {
                 println!("Processed {} frames...", i + 1);
             }

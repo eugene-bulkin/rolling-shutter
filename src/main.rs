@@ -1,3 +1,6 @@
+#![deny(missing_docs)]
+//! A tool for creating roller shutter images, which emulate how a phone's rolling shutter sees.
+
 extern crate clap;
 #[macro_use]
 extern crate error_chain;
@@ -13,6 +16,8 @@ mod image_processing;
 use self::errors::{ErrorKind, Result, ResultExt};
 use self::file_processing::*;
 
+/// The *starting* direction of the shutter. That is, what part of the image does the shutter start
+/// from, and then go to the other side.
 #[derive(Copy, Clone, Debug, PartialEq)]
 enum Direction {
     N,
@@ -79,7 +84,7 @@ fn run() -> Result<()> {
     let path_mode = if let Some(path) = matches.value_of("folder") {
         PathMode::Folder(path)
     } else if let Some(path) = matches.value_of("input") {
-        PathMode::Filemask(path)
+        PathMode::FileMask(path)
     } else {
         unreachable!();
     };

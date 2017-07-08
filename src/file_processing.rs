@@ -5,20 +5,39 @@ use std::str;
 
 use ::errors::{ErrorKind, Result, ResultExt};
 
+/// A file mask variable description.
+///
+/// Encodes whether the variable is zero-padded, and how many digits the full variable would have.
 #[derive(Copy, Clone, Debug, PartialEq, Eq)]
 pub(crate) struct FileMask {
     zero_padded: bool,
     digits: usize,
 }
 
+/// A description of what the path provided actually means; is the path the user provided a folder,
+/// or is it a file mask of some kind?
 #[derive(Clone, Debug, PartialEq, Hash)]
 pub enum PathMode<'a> {
-    Filemask(&'a str),
+    /// A file mask with a variable.
+    FileMask(&'a str),
+    /// A folder path.
     Folder(&'a str),
 }
 
+/// Parse a given file mask.
+///
+/// In essence, this means finding the sequence variable (i.e. the portion of the path that goes
+/// 0, 1, ...) and taking it out so we can vary over it.
+///
+/// # Arguments
+/// * `s` - The string describing the file mask.
+///
+/// # Errors
+/// This will fail if there is not *exactly* one variable in the file mask. No variables means there
+/// is no sequence to be used, and multiple means ambiguity in which sequence variable to use.
 pub(crate) fn parse_filemask<S: Into<String>>(s: S) -> Result<(String, FileMask, String)> {
     let s = s.into();
+    // This matches something of the format %Nd or %0Nd where N is the number of digits in the mask.
     let re = Regex::new(r"%(0)?([\d]+)d").unwrap();
     let mut result: Option<(String, FileMask, String)> = None;
 
@@ -45,9 +64,22 @@ pub(crate) fn parse_filemask<S: Into<String>>(s: S) -> Result<(String, FileMask,
     }
 }
 
+/// Given a `PathMode`, retrieve the set of image paths.
+///
+/// # Caveats
+/// There is no guarantee about the order of image paths provided using the `PathMode::Folder` mode.
+/// The returned order will likely be system-dependent.
+///
+/// # Arguments
+/// * `path_mode` - The `PathMode` describing how to determine the image paths.
+///
+/// # Errors
+/// This can fail if given a `PathMode::FileMask` that cannot be parsed, or if there are no images
+/// that exist in the sequence the file mask provides. If a folder is provided, this will fail if
+/// the folder does not exist or if there are no images in that directory.
 pub fn get_paths(path_mode: &PathMode) -> Result<Vec<PathBuf>> {
     match *path_mode {
-        PathMode::Filemask(filemask) => {
+        PathMode::FileMask(filemask) => {
             let (left, mask, right) = parse_filemask(filemask)
                 .chain_err(|| ErrorKind::CouldNotParseFilemask(filemask.into()))?;
 
@@ -78,7 +110,7 @@ pub fn get_paths(path_mode: &PathMode) -> Result<Vec<PathBuf>> {
         PathMode::Folder(_folder) => {
             // TODO
             bail!(ErrorKind::Unimplemented)
-        },
+        }
     }
 }
 
