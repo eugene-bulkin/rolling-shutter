@@ -73,6 +73,10 @@ fn parse_args<'a>() -> ArgMatches<'a> {
             .help("A folder to use for frames.{n}Frames will be taken in platform-sorted order.")
             .takes_value(true)
             .required_unless("input"))
+        .arg(Arg::with_name("quiet")
+            .short("q")
+            .long("quiet")
+            .help("Suppress output."))
         .get_matches()
 }
 
@@ -93,7 +97,7 @@ fn run() -> Result<()> {
 
     let paths = file_processing::get_paths(&path_mode).chain_err(|| ErrorKind::CouldNotGetPaths)?;
 
-    image_processing::process_images(paths, &output, direction)?;
+    image_processing::process_images(paths, &output, direction, matches.is_present("quiet"))?;
 
     Ok(())
 }

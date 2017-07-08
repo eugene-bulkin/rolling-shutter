@@ -67,11 +67,12 @@ fn process_image<I, J>(current_buffer: &mut I,
 /// * `paths` - An iterator of `PathBuf`s that describe the input images, in the correct order.
 /// * `output` - The output image path.
 /// * `direction` - The direction from which the shutter *starts* moving.
+/// * `suppress_output` - Whether to suppress output or not.
 ///
 /// # Errors
 /// This may fail if an individual image cannot be opened or processed, or if the output cannot be
 /// properly saved.
-pub(crate) fn process_images<I, P>(paths: I, output: P, direction: Direction) -> Result<()>
+pub(crate) fn process_images<I, P>(paths: I, output: P, direction: Direction, suppress_output: bool) -> Result<()>
     where I: IntoIterator<Item = PathBuf>,
           P: AsRef<Path>
 {
@@ -95,7 +96,9 @@ pub(crate) fn process_images<I, P>(paths: I, output: P, direction: Direction) ->
             // This is sort of an arbitrary number at which to show progress. Could probably turn
             // this into a progress bar sort of thing.
             if (i + 1) % 40 == 0 && i > 0 {
-                println!("Processed {} frames...", i + 1);
+                if !suppress_output {
+                    println!("Processed {} frames...", i + 1);
+                }
             }
         } else {
             // Ran out of space to do shutters, so don't continue.
@@ -103,7 +106,9 @@ pub(crate) fn process_images<I, P>(paths: I, output: P, direction: Direction) ->
         }
     }
 
-    println!("Saving image...");
+    if !suppress_output {
+        println!("Saving image...");
+    }
 
     let output = output.as_ref();
 
