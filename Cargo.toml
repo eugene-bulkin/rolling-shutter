@@ -7,4 +7,5 @@ authors = ["Eugene Bulkin <eugene.bulkin2@gmail.com>"]
 clap = "2.25.0"
 error-chain = "0.10.0"
 image = "0.14.0"
+pbr = "1.0.0"
 regex = "0.2"

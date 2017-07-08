@@ -5,6 +5,7 @@ extern crate clap;
 #[macro_use]
 extern crate error_chain;
 extern crate image;
+extern crate pbr;
 extern crate regex;
 
 use clap::{Arg, ArgMatches, App};
@@ -97,7 +98,10 @@ fn run() -> Result<()> {
 
     let paths = file_processing::get_paths(&path_mode).chain_err(|| ErrorKind::CouldNotGetPaths)?;
 
-    image_processing::process_images(paths, &output, direction, matches.is_present("quiet"))?;
+    image_processing::process_images(paths.into_iter(),
+                                     &output,
+                                     direction,
+                                     matches.is_present("quiet"))?;
 
     Ok(())
 }

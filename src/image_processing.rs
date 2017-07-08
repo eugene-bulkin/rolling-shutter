@@ -1,4 +1,5 @@
 use image::{self, GenericImage, ImageBuffer};
+use pbr::ProgressBar;
 
 use std::path::{PathBuf, Path};
 
@@ -72,11 +73,17 @@ fn process_image<I, J>(current_buffer: &mut I,
 /// # Errors
 /// This may fail if an individual image cannot be opened or processed, or if the output cannot be
 /// properly saved.
-pub(crate) fn process_images<I, P>(paths: I, output: P, direction: Direction, suppress_output: bool) -> Result<()>
-    where I: IntoIterator<Item = PathBuf>,
+pub(crate) fn process_images<I, P>(paths: I,
+                                   output: P,
+                                   direction: Direction,
+                                   suppress_output: bool)
+                                   -> Result<()>
+    where I: Iterator<Item = PathBuf> + ExactSizeIterator,
           P: AsRef<Path>
 {
-    let mut iter = paths.into_iter().peekable();
+    let mut iter = paths.peekable();
+
+    let count = iter.len() as u64;
 
     // Note that we can access the first item without checking because we already ensured that only
     // non-empty sets of paths will be allowed in.
@@ -85,6 +92,15 @@ pub(crate) fn process_images<I, P>(paths: I, output: P, direction: Direction, su
         image::open(&first_path).chain_err(|| ErrorKind::CouldNotOpenImage(first_path.clone()))?;
     let (width, height) = cur_img.dimensions();
     let mut buf: image::RgbaImage = ImageBuffer::new(width, height);
+
+    let num_frames = ::std::cmp::min(count,
+                                     match direction {
+                                         Direction::N | Direction::S => height,
+                                         Direction::E | Direction::W => width,
+                                     } as u64);
+    let mut frame_pb = ProgressBar::new(num_frames);
+    frame_pb.message("Processing frames: ");
+    frame_pb.set_max_refresh_rate(Some(::std::time::Duration::from_millis(50)));
 
     for (i, path) in iter.enumerate() {
         if i > 0 {
@@ -95,10 +111,8 @@ pub(crate) fn process_images<I, P>(paths: I, output: P, direction: Direction, su
         if process_result {
             // This is sort of an arbitrary number at which to show progress. Could probably turn
             // this into a progress bar sort of thing.
-            if (i + 1) % 40 == 0 && i > 0 {
-                if !suppress_output {
-                    println!("Processed {} frames...", i + 1);
-                }
+            if !suppress_output {
+                frame_pb.inc();
             }
         } else {
             // Ran out of space to do shutters, so don't continue.
@@ -107,12 +121,15 @@ pub(crate) fn process_images<I, P>(paths: I, output: P, direction: Direction, su
     }
 
     if !suppress_output {
-        println!("Saving image...");
+        frame_pb.finish();
     }
 
     let output = output.as_ref();
 
     buf.save(output).chain_err(|| ErrorKind::CouldNotSaveOutput(output.to_path_buf().clone()))?;
+    if !suppress_output {
+        println!("\nDone.");
+    }
 
     Ok(())
 }
